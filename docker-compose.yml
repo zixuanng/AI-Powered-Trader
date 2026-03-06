@@ -1,0 +1,28 @@
+services:
+  bot:
+    build: .
+    container_name: trading-bot
+    env_file: .env
+    volumes:
+      - bot-data:/app/data
+      - ./models:/app/models
+    ports:
+      - "8000:8000"  # Prometheus metrics
+    restart: unless-stopped
+    command: ["--strategy", "ensemble"]
+
+  dashboard:
+    build: .
+    container_name: trading-dashboard
+    env_file: .env
+    volumes:
+      - bot-data:/app/data
+    ports:
+      - "8501:8501"  # Streamlit
+    entrypoint: ["streamlit", "run", "scripts/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+    restart: unless-stopped
+    depends_on:
+      - bot
+
+volumes:
+  bot-data:
